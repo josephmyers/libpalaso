@@ -113,7 +113,18 @@ namespace SIL.Windows.Forms.Keyboarding.Linux
 			return program;
 		}
 
-		private static bool HasKeyman => File.Exists(KeymanConfigApp);
+		private static bool HasKeyman
+		{
+			get
+			{
+				string prefix = "";
+				if (Platform.IsFlatpak)
+				{
+					prefix = "/run/host";
+				}
+				return File.Exists($"{prefix}{KeymanConfigApp}");
+			}
+		}
 
 		#region IKeyboardRetrievingAdaptor implementation
 
@@ -199,7 +210,10 @@ namespace SIL.Windows.Forms.Keyboarding.Linux
 
 			return () =>
 			{
-				using (Process.Start(KeymanConfigApp)) { }
+				string program = KeymanConfigApp;
+				string arguments = "";
+				KeyboardRetrievingHelper.ToFlatpakSpawn(ref program, ref arguments);
+				using (Process.Start(program, arguments)) { }
 			};
 		}
 
